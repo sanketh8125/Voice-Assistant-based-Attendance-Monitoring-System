@@ -1,0 +1,54 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #E2F2F9;
+    margin: 0;
+    padding: 50px 20px;
+}
+
+h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#start-mic {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#start-mic:hover {
+    background-color: #0056b3;
+}
+
+#ask-start-mic {
+    background-color: #67BA6B;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#ask-start-mic:hover {
+    background-color: #407D43;
+}
+
+#status {
+    font-size: 18px;
+    color: #555;
+    margin-top: 15px;
+}
+#ask-status {
+    font-size: 18px;
+    color: #555;
+    margin-top: 15px;
+}

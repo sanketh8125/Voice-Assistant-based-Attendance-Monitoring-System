@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Based Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color:rgb(223, 26, 26);
+            margin: 0;
+            padding: 50px 20px;
+        }
+        
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        #start-mic {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        #start-mic:hover {
+            background-color: #0056b3;
+        }
+        
+        #status {
+            font-size: 18px;
+            color: #555;
+            margin-top: 15px;
+        }
+        
+    </style>
+</head>
+<body>
+    <h2>Voice-Based Attendance</h2>
+    <button id="start-mic">🎤 Speak Your Name</button>
+    <p id="status">Press the button and say your name.</p>
+
+    <script>
+        document.getElementById("start-mic").addEventListener("click", function() {
+            let statusElement = document.getElementById("status");
+
+         
+
+                let spokenText = "vinay";
+                statusElement.textContent = `You said: "${spokenText}"`;
+
+                // Send to backend for attendance marking
+                fetch("/home/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: spokenText })
+                })
+                .then(response => {
+                    console.log("Fetch request sent!", response);  // Debugging
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        statusElement.textContent = `✅ ${data.message}`;
+                    } else {
+                        statusElement.textContent = `❌ ${data.message}`;
+                        
+                    }
+                })
+                .catch(error => {
+                    statusElement.textContent = "Error marking attendance.";
+                });
+            
+
+
+          
+        });
+    </script>
+</body>
+</html>

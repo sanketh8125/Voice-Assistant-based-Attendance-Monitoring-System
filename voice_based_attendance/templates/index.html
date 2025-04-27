@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Based Attendance</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            gap:35px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        button {
+            background: #ff5722;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: #e64a19;
+            transform: scale(1.05);
+        }
+
+        p {
+            font-size: 14px;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .example {
+            margin-top: 15px;
+            font-size: 13px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 400;
+        }
+
+        .success {
+            color: #4caf50;
+        }
+
+        .error {
+            color: #ff4d4d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" style="padding: 35px;">
+        <h2>🎙 Voice-Based Attendance</h2>
+        <button id="start-mic">🎤 Speak Your Name</button>
+        <p id="status">Press the button and say your name.</p>
+        <div class="example">
+            <p class="success">✅ Example: "Varala Sanketh"</p>
+            <p class="error">❌ Incorrect: "My name is Varala Sanketh"</p>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="container">
+        <h2>🔍 Ask Queries About Attendance</h2>
+        <button id="ask-start-mic">🎤 Speak Your Query</button>
+        <p id="ask-status">Press the button and say your name and query.</p>
+        <div class="example">
+            <p class="success">✅ Example: "My name is Sanketh, what is my present percentage?"</p>
+            <p class="error">❌ Incorrect: "What is my present percentage?"</p>
+        </div>
+    </div>
+    <script>
+        document.getElementById("start-mic").addEventListener("click", function () {
+            document.getElementById("start-mic").disabled = true;
+            document.getElementById("ask-start-mic").disabled = true;
+            let statusElement = document.getElementById("status");
+
+            // Check if browser supports SpeechRecognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                statusElement.textContent = "Your browser does not support Speech Recognition.";
+                return;
+            }
+
+            let recognition = new SpeechRecognition();
+            recognition.lang = "en-US";
+            recognition.start();
+
+            recognition.onstart = function () {
+                statusElement.textContent = "Listening...";
+                console.log("lis");
+            };
+
+            recognition.onspeechend = function () {
+                recognition.stop();
+                // statusElement.textContent = "Processing...";
+                console.log("end");
+            };
+
+
+            recognition.onresult = function (event) {
+                try {
+                    let spokenText = event.results[0][0].transcript.trim();
+                    console.log("You said:", spokenText);
+                    markAttendance(spokenText, statusElement);
+                    // setTimeout(function () {
+                    //     location.reload();
+                    // }, 4500);
+                } catch (error) {
+                    console.error("Error in processing result:", error);
+                    statusElement.textContent = "Error processing speech result.";
+                }
+            };
+
+            // recognition.onresult = function(event) {
+            //     let spokenText = event.results[0][0].transcript.trim();
+            //     //statusElement.textContent = `You said: "${spokenText}"`;
+            //     console.log("yttt");
+            //     console.log(spokenText);
+            //     markAttendance(spokenText, statusElement);
+            //     setTimeout(function() { location.reload(); }, 4500);
+
+            // };
+
+            recognition.onerror = function (event) {
+                statusElement.textContent = "Error: " + event.error;
+                if (event.error == "no-speech") {
+                    speakText("Sorry, An error occured, try again")
+                    // speakText("Your attendance overview shows that you were present for  5 out of  10 days, resulting in a  50% attendance rate.")
+                }
+                // setTimeout(function () {
+                //     location.reload();
+                // }, 4500);
+            };
+
+            // Function to get CSRF token from cookies
+            function getCSRFToken() {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== "") {
+                    let cookies = document.cookie.split(";");
+                    for (let i = 0; i < cookies.length; i++) {
+                        let cookie = cookies[i].trim();
+                        if (cookie.startsWith("csrftoken=")) {
+                            cookieValue = cookie.substring("csrftoken=".length, cookie.length);
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            function markAttendance(spokenText, statusElement) {
+                fetch("/home/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: spokenText })
+                })
+                    .then(response => {
+                        console.log("Fetch request sent!", response);  // Debugging
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            statusElement.textContent = `✅ ${data.message}`;
+                            speakText(data.message);
+
+                        } else {
+                            statusElement.textContent = `❌ ${data.message}`;
+                            speakText(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        statusElement.textContent = "Error marking attendance.";
+                        speakText("Error marking attendance");
+                    });
+            }
+        });
+        function speakText(text) {
+            if (!window.speechSynthesis) {
+                console.error("Speech Synthesis not supported in this browser.");
+                return;
+            }
+
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-US"; // Set language
+            utterance.rate = 0.7; // Set speaking rate (1 is normal speed)
+            utterance.pitch = 1; // Set pitch (1 is default)
+
+            utterance.onend = function () {
+                console.log("Speech finished, reloading page...");
+                location.reload();
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+    </script>
+    <script src="/static/ask.js"></script>
+</body>
+
+</html>
